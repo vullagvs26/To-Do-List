@@ -74,9 +74,17 @@ const getSortIcon = (key) => {
   return sortOrder.value === 'asc' ? '↑' : '↓'
 }
 
+// Create a map of tag IDs to names for efficient lookup
+const tagNameMap = computed(() => {
+  const map = {}
+  props.tags.forEach(tag => {
+    map[tag.id] = tag.name
+  })
+  return map
+})
+
 const getTagName = (tagId) => {
-  const tag = props.tags.find(t => t.id === tagId)
-  return tag ? tag.name : ''
+  return tagNameMap.value[tagId] || ''
 }
 
 const formatDate = (dateString) => {

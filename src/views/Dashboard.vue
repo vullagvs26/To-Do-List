@@ -115,7 +115,7 @@ const filteredTodos = computed(() => {
   // Apply tag filter
   if (filters.value.tag !== 'all') {
     filtered = filtered.filter(t => 
-      t.todo_tags && t.todo_tags.some(tag => tag.tag_id === filters.value.tag)
+      t.todo_tags && t.todo_tags.some(tag => tag.tag_id === parseInt(filters.value.tag))
     )
   }
 

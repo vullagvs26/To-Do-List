@@ -1,4 +1,4 @@
-import { ref, watch, onMounted } from 'vue'
+import { ref, onMounted } from 'vue'
 
 const isDarkMode = ref(false)
 
@@ -25,10 +25,6 @@ export function useDarkMode() {
       // Check system preference
       isDarkMode.value = window.matchMedia('(prefers-color-scheme: dark)').matches
     }
-    updateDarkModeClass()
-  })
-
-  watch(isDarkMode, () => {
     updateDarkModeClass()
   })
 
