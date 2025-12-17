@@ -37,10 +37,10 @@ async function fetchTags() {
 }
 
 async function addTag() {
-  if (!newTagName.trim()) return
+  if (!newTagName.value.trim()) return
 
   try {
-    await tagService.createTag(user.value.id, newTagName)
+    await tagService.createTag(user.value.id, newTagName.value)
     newTagName.value = ''
     await fetchTags()
   } catch (err) {
