@@ -4,6 +4,12 @@ A full-featured todo management application with **Vue 3**, **Vite**, and **Supa
 
 ## 🚀 Quick Start
 
+
+```bash
+username: admin@gmail.com
+password: password
+```
+
 ```bash
 npm install
 ```
