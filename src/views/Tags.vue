@@ -2,7 +2,10 @@
 import { ref, onMounted } from 'vue'
 import { supabase } from '@/lib/supabase'
 import { tagService } from '@/lib/database'
+import { useDarkMode } from '@/composables/useDarkMode'
+import PageWrapper from '@/components/PageWrapper.vue'
 
+const { isDarkMode } = useDarkMode()
 const tags = ref([])
 const loading = ref(false)
 const error = ref(null)
@@ -76,12 +79,13 @@ function startEdit(tag) {
 </script>
 
 <template>
-  <div style="padding: 20px; max-width: 800px; margin: 0 auto;">
-    <h1>Tags</h1>
+  <PageWrapper :isDarkMode="isDarkMode">
+    <div style="padding: 20px; max-width: 800px; margin: 0 auto;">
+      <h1>Tags</h1>
 
-    <div v-if="error" style="color: #dc2626; margin: 10px 0; padding: 10px; background: #fee2e2; border-radius: 4px;">
-      Error: {{ error }}
-    </div>
+      <div v-if="error" style="color: #dc2626; margin: 10px 0; padding: 10px; background: #fee2e2; border-radius: 4px;">
+        Error: {{ error }}
+      </div>
 
     <!-- Add New Tag -->
     <div style="background: #f3f4f6; padding: 20px; border-radius: 8px; margin: 20px 0;">
@@ -160,5 +164,6 @@ function startEdit(tag) {
         </div>
       </div>
     </div>
-  </div>
+    </div>
+  </PageWrapper>
 </template>

@@ -216,26 +216,6 @@ onMounted(async () => {
 
 <template>
   <div class="dashboard-container" :class="{ 'dark': isDarkMode }">
-    <!-- Header -->
-    <header class="dashboard-header">
-      <div class="header-content">
-        <h1 class="dashboard-title">Dashboard</h1>
-        <div class="header-actions">
-          <button @click="toggleDarkMode" class="icon-btn" :title="isDarkMode ? 'Light Mode' : 'Dark Mode'">
-            <svg v-if="!isDarkMode" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" class="icon">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
-            </svg>
-            <svg v-else xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" class="icon">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
-            </svg>
-          </button>
-          <button @click="logout" class="logout-btn">
-            Logout
-          </button>
-        </div>
-      </div>
-    </header>
-
     <div class="dashboard-content">
       <!-- Error Message -->
       <div v-if="error" class="error-banner">
@@ -446,90 +426,6 @@ onMounted(async () => {
 
 .dashboard-container.dark {
   background: linear-gradient(135deg, #1e3a8a 0%, #312e81 100%);
-}
-
-.dashboard-header {
-  background: white;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  position: sticky;
-  top: 0;
-  z-index: 100;
-}
-
-.dark .dashboard-header {
-  background: #1f2937;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
-}
-
-.header-content {
-  max-width: 1400px;
-  margin: 0 auto;
-  padding: 20px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.dashboard-title {
-  font-size: 1.75rem;
-  font-weight: 700;
-  color: #111827;
-  margin: 0;
-}
-
-.dark .dashboard-title {
-  color: #f3f4f6;
-}
-
-.header-actions {
-  display: flex;
-  gap: 12px;
-  align-items: center;
-}
-
-.icon-btn {
-  padding: 10px;
-  background: #f3f4f6;
-  border: none;
-  border-radius: 8px;
-  cursor: pointer;
-  transition: all 0.2s;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.dark .icon-btn {
-  background: #374151;
-}
-
-.icon-btn:hover {
-  background: #e5e7eb;
-  transform: scale(1.05);
-}
-
-.dark .icon-btn:hover {
-  background: #4b5563;
-}
-
-.icon {
-  width: 20px;
-  height: 20px;
-}
-
-.logout-btn {
-  padding: 10px 20px;
-  background: #ef4444;
-  color: white;
-  border: none;
-  border-radius: 8px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.2s;
-}
-
-.logout-btn:hover {
-  background: #dc2626;
 }
 
 .dashboard-content {

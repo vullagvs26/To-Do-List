@@ -2,7 +2,10 @@
 import { ref, onMounted } from 'vue'
 import { supabase } from '@/lib/supabase'
 import { profileService } from '@/lib/database'
+import { useDarkMode } from '@/composables/useDarkMode'
+import PageWrapper from '@/components/PageWrapper.vue'
 
+const { isDarkMode } = useDarkMode()
 const user = ref(null)
 const profile = ref(null)
 const loading = ref(false)
@@ -99,32 +102,33 @@ async function logout() {
 </script>
 
 <template>
-  <div style="padding: 20px; max-width: 600px; margin: 0 auto;">
-    <h1>Profile</h1>
+  <PageWrapper :isDarkMode="isDarkMode">
+    <div style="padding: 20px; max-width: 600px; margin: 0 auto;">
+      <h1>Profile</h1>
 
-    <div v-if="error" style="color: #dc2626; margin: 10px 0; padding: 10px; background: #fee2e2; border-radius: 4px;">
-      Error: {{ error }}
-    </div>
+      <div v-if="error" style="color: #dc2626; margin: 10px 0; padding: 10px; background: #fee2e2; border-radius: 4px;">
+        Error: {{ error }}
+      </div>
 
-    <div v-if="success" style="color: #059669; margin: 10px 0; padding: 10px; background: #d1fae5; border-radius: 4px;">
-      {{ success }}
-    </div>
+      <div v-if="success" style="color: #059669; margin: 10px 0; padding: 10px; background: #d1fae5; border-radius: 4px;">
+        {{ success }}
+      </div>
 
-    <div v-if="loading" style="text-align: center; padding: 20px;">
-      Loading...
-    </div>
+      <div v-if="loading" style="text-align: center; padding: 20px;">
+        Loading...
+      </div>
 
-    <div v-else style="background: white; border: 1px solid #e5e7eb; padding: 20px; border-radius: 8px;">
-      <!-- User Email Info -->
-      <div style="margin-bottom: 20px; padding-bottom: 20px; border-bottom: 1px solid #e5e7eb;">
+      <div v-else style="background: white; border: 1px solid #e5e7eb; padding: 20px; border-radius: 8px;">
+        <!-- User Email Info -->
+        <div style="margin-bottom: 20px; padding-bottom: 20px; border-bottom: 1px solid #e5e7eb;">
         <label style="display: block; color: #6b7280; font-size: 0.875rem; font-weight: 500; margin-bottom: 5px;">
           Email
         </label>
         <p style="margin: 0; font-size: 1.125rem;">{{ user?.email }}</p>
-      </div>
+        </div>
 
-      <!-- Display Mode -->
-      <div v-if="!isEditing">
+        <!-- Display Mode -->
+        <div v-if="!isEditing">
         <div style="margin-bottom: 15px;">
           <label style="display: block; color: #6b7280; font-size: 0.875rem; font-weight: 500; margin-bottom: 5px;">
             Username
@@ -176,10 +180,10 @@ async function logout() {
             Logout
           </button>
         </div>
-      </div>
+        </div>
 
-      <!-- Edit Mode -->
-      <div v-else>
+        <!-- Edit Mode -->
+        <div v-else>
         <div style="margin-bottom: 15px;">
           <label style="display: block; color: #6b7280; font-size: 0.875rem; font-weight: 500; margin-bottom: 5px;">
             Username
@@ -230,6 +234,7 @@ async function logout() {
           </button>
         </div>
       </div>
+      </div>
     </div>
-  </div>
+  </PageWrapper>
 </template>

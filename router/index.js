@@ -1,34 +1,32 @@
-import { createRouter, createWebHistory } from 'vue-router'
-import { supabase } from '@/lib/supabase'
-import Login from '@/views/Login.vue'
-import Dashboard from '@/views/Dashboard.vue'
-import DashboardDemo from '@/views/DashboardDemo.vue'
-import Todos from '@/views/Todos.vue'
-import Tags from '@/views/Tags.vue'
-import Profile from '@/views/Profile.vue'
+import { createRouter, createWebHistory } from "vue-router";
+import { supabase } from "@/lib/supabase";
+import Login from "@/views/Login.vue";
+import Dashboard from "@/views/Dashboard.vue";
+import Todos from "@/views/Todos.vue";
+import Tags from "@/views/Tags.vue";
+import Profile from "@/views/Profile.vue";
 
 const routes = [
-  { path: '/', redirect: '/todos' },
-  { path: '/login', component: Login },
-  { path: '/dashboard', component: Dashboard, meta: { requiresAuth: true } },
-  { path: '/dashboard-demo', component: DashboardDemo },
-  { path: '/todos', component: Todos, meta: { requiresAuth: true } },
-  { path: '/tags', component: Tags, meta: { requiresAuth: true } },
-  { path: '/profile', component: Profile, meta: { requiresAuth: true } },
-]
+  { path: "/", redirect: "/todos" },
+  { path: "/login", component: Login },
+  { path: "/dashboard", component: Dashboard, meta: { requiresAuth: true } },
+  { path: "/todos", component: Todos, meta: { requiresAuth: true } },
+  { path: "/tags", component: Tags, meta: { requiresAuth: true } },
+  { path: "/profile", component: Profile, meta: { requiresAuth: true } },
+];
 
 const router = createRouter({
   history: createWebHistory(),
-  routes
-})
+  routes,
+});
 
 router.beforeEach(async (to, from, next) => {
-  const { data } = await supabase.auth.getSession()
+  const { data } = await supabase.auth.getSession();
   if (to.meta.requiresAuth && !data.session) {
-    next('/login')
+    next("/login");
   } else {
-    next()
+    next();
   }
-})
+});
 
-export default router
+export default router;

@@ -2,7 +2,10 @@
 import { ref, computed, onMounted } from 'vue'
 import { supabase } from '@/lib/supabase'
 import { todoService, tagService } from '@/lib/database'
+import { useDarkMode } from '@/composables/useDarkMode'
+import PageWrapper from '@/components/PageWrapper.vue'
 
+const { isDarkMode } = useDarkMode()
 const todos = ref([])
 const tags = ref([])
 const loading = ref(false)
@@ -163,51 +166,53 @@ async function addNewTag() {
 </script>
 
 <template>
-  <div style="padding: 20px; max-width: 1200px; margin: 0 auto;">
-    <h1>My Todos</h1>
+  <PageWrapper :isDarkMode="isDarkMode">
+    <div style="padding: 20px; max-width: 1200px; margin: 0 auto;">
+      <h1>My Todos</h1>
 
-    <div v-if="error" style="color: #dc2626; margin: 10px 0; padding: 10px; background: #fee2e2; border-radius: 4px;">
-      Error: {{ error }}
+      <div v-if="error" :style="{ color: isDarkMode ? '#fca5a5' : '#dc2626', margin: '10px 0', padding: '10px', background: isDarkMode ? '#7f1d1d' : '#fee2e2', borderRadius: '4px' }">
+        Error: {{ error }}
+      </div>
     </div>
 
     <!-- Filters -->
-    <div style="margin: 20px 0; display: flex; gap: 10px; flex-wrap: wrap;">
-      <select v-model="filterStatus" style="padding: 8px; border: 1px solid #d1d5db; border-radius: 4px;">
+    <div :style="{ margin: '20px 0', display: 'flex', gap: '10px', flexWrap: 'wrap', padding: '15px', background: isDarkMode ? '#374151' : '#f3f4f6', borderRadius: '8px' }">
+      <select v-model="filterStatus" :style="{ padding: '8px', border: `1px solid ${isDarkMode ? '#4b5563' : '#d1d5db'}`, borderRadius: '4px', background: isDarkMode ? '#2d3748' : 'white', color: isDarkMode ? '#f3f4f6' : '#111827' }">
         <option value="all">All Status</option>
         <option value="todo">Todo</option>
         <option value="in_progress">In Progress</option>
         <option value="done">Done</option>
       </select>
 
-      <select v-model="filterPriority" style="padding: 8px; border: 1px solid #d1d5db; border-radius: 4px;">
+      <select v-model="filterPriority" :style="{ padding: '8px', border: `1px solid ${isDarkMode ? '#4b5563' : '#d1d5db'}`, borderRadius: '4px', background: isDarkMode ? '#2d3748' : 'white', color: isDarkMode ? '#f3f4f6' : '#111827' }">
         <option value="all">All Priority</option>
         <option value="1">Low</option>
         <option value="2">Medium</option>
         <option value="3">High</option>
       </select>
 
-      <select v-model="filterTag" style="padding: 8px; border: 1px solid #d1d5db; border-radius: 4px;">
+      <select v-model="filterTag" :style="{ padding: '8px', border: `1px solid ${isDarkMode ? '#4b5563' : '#d1d5db'}`, borderRadius: '4px', background: isDarkMode ? '#2d3748' : 'white', color: isDarkMode ? '#f3f4f6' : '#111827' }">
         <option value="all">All Tags</option>
         <option v-for="tag in tags" :key="tag.id" :value="tag.id">{{ tag.name }}</option>
       </select>
     </div>
 
     <!-- Add New Todo -->
-    <div style="background: #f3f4f6; padding: 20px; border-radius: 8px; margin: 20px 0;">
-      <h2>Add New Todo</h2>
+    <div :style="{ background: isDarkMode ? '#2d3748' : '#f3f4f6', padding: '20px', borderRadius: '8px', margin: '20px 0' }">
+      <h2 :style="{ color: isDarkMode ? '#f3f4f6' : '#111827' }">Add New Todo</h2>
       <input
         v-model="newTodoTitle"
         type="text"
         placeholder="Todo title"
-        style="width: 100%; padding: 8px; margin: 5px 0; border: 1px solid #d1d5db; border-radius: 4px; box-sizing: border-box;"
+        :style="{ width: '100%', padding: '8px', margin: '5px 0', border: `1px solid ${isDarkMode ? '#4b5563' : '#d1d5db'}`, borderRadius: '4px', boxSizing: 'border-box', background: isDarkMode ? '#1f2937' : 'white', color: isDarkMode ? '#f3f4f6' : '#111827' }"
       />
       <textarea
         v-model="newTodoDescription"
         placeholder="Description (optional)"
-        style="width: 100%; padding: 8px; margin: 5px 0; border: 1px solid #d1d5db; border-radius: 4px; box-sizing: border-box; min-height: 80px;"
+        :style="{ width: '100%', padding: '8px', margin: '5px 0', border: `1px solid ${isDarkMode ? '#4b5563' : '#d1d5db'}`, borderRadius: '4px', boxSizing: 'border-box', minHeight: '80px', background: isDarkMode ? '#1f2937' : 'white', color: isDarkMode ? '#f3f4f6' : '#111827' }"
       ></textarea>
       <div style="display: flex; gap: 10px; margin: 10px 0;">
-        <select v-model.number="newTodoPriority" style="padding: 8px; border: 1px solid #d1d5db; border-radius: 4px;">
+        <select v-model.number="newTodoPriority" :style="{ padding: '8px', border: `1px solid ${isDarkMode ? '#4b5563' : '#d1d5db'}`, borderRadius: '4px', background: isDarkMode ? '#1f2937' : 'white', color: isDarkMode ? '#f3f4f6' : '#111827' }">
           <option value="1">Low Priority</option>
           <option value="2">Medium Priority</option>
           <option value="3">High Priority</option>
@@ -215,13 +220,13 @@ async function addNewTag() {
         <input
           v-model="newTodoDueDate"
           type="datetime-local"
-          style="padding: 8px; border: 1px solid #d1d5db; border-radius: 4px;"
+          :style="{ padding: '8px', border: `1px solid ${isDarkMode ? '#4b5563' : '#d1d5db'}`, borderRadius: '4px', background: isDarkMode ? '#1f2937' : 'white', color: isDarkMode ? '#f3f4f6' : '#111827' }"
         />
       </div>
       <div style="margin: 10px 0;">
-        <label>Tags:</label>
+        <label :style="{ color: isDarkMode ? '#f3f4f6' : '#111827' }">Tags:</label>
         <div style="display: flex; flex-wrap: wrap; gap: 5px; margin-top: 5px;">
-          <label v-for="tag in tags" :key="tag.id">
+          <label v-for="tag in tags" :key="tag.id" :style="{ color: isDarkMode ? '#f3f4f6' : '#111827' }">
             <input v-model="selectedTags" :value="tag.id" type="checkbox" />
             {{ tag.name }}
           </label>
@@ -240,20 +245,20 @@ async function addNewTag() {
 
     <!-- Todos List -->
     <div>
-      <h2>Todos ({{ filteredTodos.length }})</h2>
-      <div v-if="loading">Loading...</div>
+      <h2 :style="{ color: isDarkMode ? '#f3f4f6' : '#111827' }">Todos ({{ filteredTodos.length }})</h2>
+      <div v-if="loading" :style="{ color: isDarkMode ? '#f3f4f6' : '#111827' }">Loading...</div>
       <div v-else-if="filteredTodos.length === 0">
-        <p style="color: #6b7280;">No todos found</p>
+        <p :style="{ color: isDarkMode ? '#9ca3af' : '#6b7280' }">No todos found</p>
       </div>
       <div v-else>
         <div
           v-for="todo in filteredTodos"
           :key="todo.id"
-          style="background: white; border: 1px solid #e5e7eb; border-left: 4px solid; border-left-color: v-bind('statusColors[todo.status]'); padding: 15px; margin: 10px 0; border-radius: 4px;"
+          :style="{ background: isDarkMode ? '#1f2937' : 'white', border: `1px solid ${isDarkMode ? '#374151' : '#e5e7eb'}`, borderLeft: `4px solid ${statusColors[todo.status]}`, padding: '15px', margin: '10px 0', borderRadius: '4px' }"
         >
           <div style="display: flex; justify-content: space-between; align-items: start;">
             <div style="flex: 1;">
-              <h3 style="margin: 0 0 5px 0;">
+              <h3 :style="{ margin: '0 0 5px 0', color: isDarkMode ? '#f3f4f6' : '#111827' }">
                 <span
                   @click="toggleStatus(todo)"
                   :style="{ textDecoration: todo.status === 'done' ? 'line-through' : 'none', cursor: 'pointer', color: statusColors[todo.status] }"
@@ -261,15 +266,15 @@ async function addNewTag() {
                   {{ todo.title }}
                 </span>
               </h3>
-              <p v-if="todo.description" style="margin: 5px 0; color: #6b7280;">{{ todo.description }}</p>
+              <p v-if="todo.description" :style="{ margin: '5px 0', color: isDarkMode ? '#9ca3af' : '#6b7280' }">{{ todo.description }}</p>
               <div style="display: flex; gap: 10px; margin: 10px 0; flex-wrap: wrap;">
-                <span style="background: #f3f4f6; padding: 4px 8px; border-radius: 4px; font-size: 0.875rem;">
+                <span :style="{ background: isDarkMode ? '#111827' : '#f3f4f6', padding: '4px 8px', borderRadius: '4px', fontSize: '0.875rem', color: isDarkMode ? '#f3f4f6' : '#111827' }">
                   {{ priorityLabels[todo.priority] }}
                 </span>
-                <span style="background: #f3f4f6; padding: 4px 8px; border-radius: 4px; font-size: 0.875rem; text-transform: capitalize;">
+                <span :style="{ background: isDarkMode ? '#111827' : '#f3f4f6', padding: '4px 8px', borderRadius: '4px', fontSize: '0.875rem', textTransform: 'capitalize', color: isDarkMode ? '#f3f4f6' : '#111827' }">
                   {{ todo.status }}
                 </span>
-                <span v-if="todo.due_date" style="background: #f3f4f6; padding: 4px 8px; border-radius: 4px; font-size: 0.875rem;">
+                <span v-if="todo.due_date" :style="{ background: isDarkMode ? '#111827' : '#f3f4f6', padding: '4px 8px', borderRadius: '4px', fontSize: '0.875rem', color: isDarkMode ? '#f3f4f6' : '#111827' }">
                   Due: {{ new Date(todo.due_date).toLocaleDateString() }}
                 </span>
               </div>
@@ -300,15 +305,15 @@ async function addNewTag() {
           </div>
 
           <!-- Edit Mode -->
-          <div v-if="editingId === todo.id" style="margin-top: 15px; padding: 15px; background: #f9fafb; border-radius: 4px;">
+          <div v-if="editingId === todo.id" :style="{ marginTop: '15px', padding: '15px', background: isDarkMode ? '#2d3748' : '#f9fafb', borderRadius: '4px' }">
             <input
               v-model="editTitle"
               type="text"
-              style="width: 100%; padding: 8px; margin: 5px 0; border: 1px solid #d1d5db; border-radius: 4px; box-sizing: border-box;"
+              :style="{ width: '100%', padding: '8px', margin: '5px 0', border: `1px solid ${isDarkMode ? '#4b5563' : '#d1d5db'}`, borderRadius: '4px', boxSizing: 'border-box', background: isDarkMode ? '#1f2937' : 'white', color: isDarkMode ? '#f3f4f6' : '#111827' }"
             />
             <textarea
               v-model="editDescription"
-              style="width: 100%; padding: 8px; margin: 5px 0; border: 1px solid #d1d5db; border-radius: 4px; box-sizing: border-box; min-height: 60px;"
+              :style="{ width: '100%', padding: '8px', margin: '5px 0', border: `1px solid ${isDarkMode ? '#4b5563' : '#d1d5db'}`, borderRadius: '4px', boxSizing: 'border-box', minHeight: '60px', background: isDarkMode ? '#1f2937' : 'white', color: isDarkMode ? '#f3f4f6' : '#111827' }"
             ></textarea>
             <div style="display: flex; gap: 10px; margin-top: 10px;">
               <button
@@ -328,5 +333,5 @@ async function addNewTag() {
         </div>
       </div>
     </div>
-  </div>
+  </PageWrapper>
 </template>
