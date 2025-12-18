@@ -15,9 +15,14 @@ body {
     sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  transition: background-color 0.3s, color 0.3s;
 }
 
 * {
   box-sizing: border-box;
+}
+
+html.dark {
+  color-scheme: dark;
 }
 </style>

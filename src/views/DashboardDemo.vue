@@ -1,24 +1,106 @@
 <script setup>
-import { ref, computed, onMounted } from 'vue'
-import { supabase } from '@/lib/supabase'
-import { todoService, tagService } from '@/lib/database'
-import { useRouter } from 'vue-router'
+import { ref, computed } from 'vue'
 import { useDarkMode } from '@/composables/useDarkMode'
 import StatusBarChart from '@/components/charts/StatusBarChart.vue'
 import PriorityPieChart from '@/components/charts/PriorityPieChart.vue'
 import TaskFilters from '@/components/TaskFilters.vue'
 import TaskTable from '@/components/TaskTable.vue'
 
-const router = useRouter()
-const user = ref(null)
-const todos = ref([])
-const tags = ref([])
-const loading = ref(false)
-const error = ref(null)
 const { isDarkMode, toggleDarkMode } = useDarkMode()
 
+// Mock data for demonstration
+const todos = ref([
+  {
+    id: 1,
+    title: 'Design new landing page',
+    description: 'Create mockups and wireframes for the new landing page',
+    status: 'in_progress',
+    priority: 3,
+    due_date: '2025-12-20T00:00:00',
+    todo_tags: [{ tag_id: 1 }],
+    created_at: '2025-12-15T00:00:00'
+  },
+  {
+    id: 2,
+    title: 'Fix authentication bug',
+    description: 'Users are unable to login with social accounts',
+    status: 'todo',
+    priority: 3,
+    due_date: '2025-12-18T00:00:00',
+    todo_tags: [{ tag_id: 2 }],
+    created_at: '2025-12-16T00:00:00'
+  },
+  {
+    id: 3,
+    title: 'Write API documentation',
+    description: 'Document all REST API endpoints with examples',
+    status: 'done',
+    priority: 2,
+    due_date: '2025-12-15T00:00:00',
+    todo_tags: [{ tag_id: 3 }],
+    created_at: '2025-12-10T00:00:00'
+  },
+  {
+    id: 4,
+    title: 'Update dependencies',
+    description: 'Update all npm packages to latest versions',
+    status: 'todo',
+    priority: 1,
+    due_date: '2025-12-25T00:00:00',
+    todo_tags: [{ tag_id: 4 }],
+    created_at: '2025-12-14T00:00:00'
+  },
+  {
+    id: 5,
+    title: 'Implement search functionality',
+    description: 'Add full-text search for all resources',
+    status: 'in_progress',
+    priority: 2,
+    due_date: '2025-12-22T00:00:00',
+    todo_tags: [{ tag_id: 1 }, { tag_id: 2 }],
+    created_at: '2025-12-17T00:00:00'
+  },
+  {
+    id: 6,
+    title: 'Code review for PR #123',
+    description: 'Review and provide feedback on the new feature implementation',
+    status: 'done',
+    priority: 2,
+    due_date: '2025-12-16T00:00:00',
+    todo_tags: [{ tag_id: 2 }],
+    created_at: '2025-12-16T00:00:00'
+  },
+  {
+    id: 7,
+    title: 'Optimize database queries',
+    description: 'Improve performance by adding indexes and optimizing slow queries',
+    status: 'todo',
+    priority: 3,
+    due_date: '2025-12-19T00:00:00',
+    todo_tags: [{ tag_id: 4 }],
+    created_at: '2025-12-15T00:00:00'
+  },
+  {
+    id: 8,
+    title: 'Setup CI/CD pipeline',
+    description: 'Configure automated testing and deployment',
+    status: 'done',
+    priority: 2,
+    due_date: '2025-12-14T00:00:00',
+    todo_tags: [{ tag_id: 4 }],
+    created_at: '2025-12-12T00:00:00'
+  }
+])
+
+const tags = ref([
+  { id: 1, name: 'Design' },
+  { id: 2, name: 'Bug' },
+  { id: 3, name: 'Documentation' },
+  { id: 4, name: 'DevOps' }
+])
+
 // View toggles
-const currentView = ref('overview') // 'overview', 'charts', 'table'
+const currentView = ref('overview')
 
 // Filter states
 const filters = ref({
@@ -33,40 +115,6 @@ const searchQuery = ref('')
 const editingTodo = ref(null)
 const editTitle = ref('')
 const editDescription = ref('')
-
-const logout = async () => {
-  await supabase.auth.signOut()
-  router.push('/login')
-}
-
-const getCurrentUser = async () => {
-  const { data: { user: authUser } } = await supabase.auth.getUser()
-  user.value = authUser
-}
-
-const fetchTodos = async () => {
-  try {
-    loading.value = true
-    error.value = null
-    if (user.value) {
-      todos.value = await todoService.getTodos(user.value.id)
-    }
-  } catch (err) {
-    error.value = err.message
-  } finally {
-    loading.value = false
-  }
-}
-
-const fetchTags = async () => {
-  try {
-    if (user.value) {
-      tags.value = await tagService.getTags(user.value.id)
-    }
-  } catch (err) {
-    error.value = err.message
-  }
-}
 
 // Computed statistics
 const stats = computed(() => {
@@ -156,17 +204,11 @@ const updateSearch = (query) => {
   searchQuery.value = query
 }
 
-const toggleStatus = async (todo) => {
+const toggleStatus = (todo) => {
   const statusCycle = ['todo', 'in_progress', 'done']
   const currentIndex = statusCycle.indexOf(todo.status)
   const newStatus = statusCycle[(currentIndex + 1) % statusCycle.length]
-  
-  try {
-    await todoService.updateTodo(todo.id, { status: newStatus })
-    await fetchTodos()
-  } catch (err) {
-    error.value = err.message
-  }
+  todo.status = newStatus
 }
 
 const startEdit = (todo) => {
@@ -175,19 +217,11 @@ const startEdit = (todo) => {
   editDescription.value = todo.description || ''
 }
 
-const saveEdit = async () => {
+const saveEdit = () => {
   if (!editingTodo.value) return
-
-  try {
-    await todoService.updateTodo(editingTodo.value.id, {
-      title: editTitle.value,
-      description: editDescription.value
-    })
-    editingTodo.value = null
-    await fetchTodos()
-  } catch (err) {
-    error.value = err.message
-  }
+  editingTodo.value.title = editTitle.value
+  editingTodo.value.description = editDescription.value
+  editingTodo.value = null
 }
 
 const cancelEdit = () => {
@@ -196,22 +230,13 @@ const cancelEdit = () => {
   editDescription.value = ''
 }
 
-const deleteTodo = async (todoId) => {
+const deleteTodo = (todoId) => {
   if (!confirm('Are you sure you want to delete this task?')) return
-
-  try {
-    await todoService.deleteTodo(todoId)
-    await fetchTodos()
-  } catch (err) {
-    error.value = err.message
+  const index = todos.value.findIndex(t => t.id === todoId)
+  if (index > -1) {
+    todos.value.splice(index, 1)
   }
 }
-
-onMounted(async () => {
-  await getCurrentUser()
-  await fetchTodos()
-  await fetchTags()
-})
 </script>
 
 <template>
@@ -219,7 +244,7 @@ onMounted(async () => {
     <!-- Header -->
     <header class="dashboard-header">
       <div class="header-content">
-        <h1 class="dashboard-title">Dashboard</h1>
+        <h1 class="dashboard-title">Dashboard Demo</h1>
         <div class="header-actions">
           <button @click="toggleDarkMode" class="icon-btn" :title="isDarkMode ? 'Light Mode' : 'Dark Mode'">
             <svg v-if="!isDarkMode" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" class="icon">
@@ -229,186 +254,170 @@ onMounted(async () => {
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
             </svg>
           </button>
-          <button @click="logout" class="logout-btn">
-            Logout
-          </button>
         </div>
       </div>
     </header>
 
     <div class="dashboard-content">
-      <!-- Error Message -->
-      <div v-if="error" class="error-banner">
-        <p>⚠️ Error: {{ error }}</p>
+      <!-- Stats Cards -->
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-icon" style="background: #dbeafe;">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="#3b82f6">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+            </svg>
+          </div>
+          <div class="stat-content">
+            <p class="stat-label">Total Tasks</p>
+            <p class="stat-value">{{ stats.total }}</p>
+          </div>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-icon" style="background: #d1fae5;">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="#10b981">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+          </div>
+          <div class="stat-content">
+            <p class="stat-label">Completed</p>
+            <p class="stat-value">{{ stats.completed }}</p>
+          </div>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-icon" style="background: #fed7aa;">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="#f59e0b">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+          </div>
+          <div class="stat-content">
+            <p class="stat-label">In Progress</p>
+            <p class="stat-value">{{ stats.inProgress }}</p>
+          </div>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-icon" style="background: #fee2e2;">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="#ef4444">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+            </svg>
+          </div>
+          <div class="stat-content">
+            <p class="stat-label">Overdue</p>
+            <p class="stat-value">{{ stats.overdue }}</p>
+          </div>
+        </div>
+
+        <div class="stat-card stat-card-wide">
+          <div class="stat-content">
+            <p class="stat-label">Completion Rate</p>
+            <div class="progress-container">
+              <div class="progress-bar" :style="{ width: stats.completionRate + '%' }"></div>
+            </div>
+            <p class="stat-value">{{ stats.completionRate }}%</p>
+          </div>
+        </div>
       </div>
 
-      <!-- Loading State -->
-      <div v-if="loading" class="loading-state">
-        <div class="spinner"></div>
-        <p>Loading dashboard data...</p>
+      <!-- View Toggle -->
+      <div class="view-toggle">
+        <button 
+          @click="currentView = 'overview'"
+          :class="{ 'active': currentView === 'overview' }"
+          class="view-btn"
+        >
+          Overview
+        </button>
+        <button 
+          @click="currentView = 'charts'"
+          :class="{ 'active': currentView === 'charts' }"
+          class="view-btn"
+        >
+          Charts
+        </button>
+        <button 
+          @click="currentView = 'table'"
+          :class="{ 'active': currentView === 'table' }"
+          class="view-btn"
+        >
+          Table
+        </button>
       </div>
 
-      <template v-else>
-        <!-- Stats Cards -->
-        <div class="stats-grid">
-          <div class="stat-card">
-            <div class="stat-icon" style="background: #dbeafe;">
-              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="#3b82f6">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-              </svg>
-            </div>
-            <div class="stat-content">
-              <p class="stat-label">Total Tasks</p>
-              <p class="stat-value">{{ stats.total }}</p>
-            </div>
-          </div>
+      <!-- Filters -->
+      <TaskFilters 
+        :tags="tags" 
+        :isDarkMode="isDarkMode"
+        @update:filters="updateFilters"
+        @update:search="updateSearch"
+      />
 
-          <div class="stat-card">
-            <div class="stat-icon" style="background: #d1fae5;">
-              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="#10b981">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
-            </div>
-            <div class="stat-content">
-              <p class="stat-label">Completed</p>
-              <p class="stat-value">{{ stats.completed }}</p>
-            </div>
+      <!-- Overview View -->
+      <div v-if="currentView === 'overview'" class="view-content">
+        <div class="charts-grid">
+          <div class="chart-card">
+            <StatusBarChart :todos="filteredTodos" :isDarkMode="isDarkMode" />
           </div>
-
-          <div class="stat-card">
-            <div class="stat-icon" style="background: #fed7aa;">
-              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="#f59e0b">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
-            </div>
-            <div class="stat-content">
-              <p class="stat-label">In Progress</p>
-              <p class="stat-value">{{ stats.inProgress }}</p>
-            </div>
+          <div class="chart-card">
+            <PriorityPieChart :todos="filteredTodos" :isDarkMode="isDarkMode" />
           </div>
+        </div>
 
-          <div class="stat-card">
-            <div class="stat-icon" style="background: #fee2e2;">
-              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="#ef4444">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-              </svg>
-            </div>
-            <div class="stat-content">
-              <p class="stat-label">Overdue</p>
-              <p class="stat-value">{{ stats.overdue }}</p>
-            </div>
+        <div class="recent-tasks">
+          <h3 class="section-title">Recent Tasks ({{ filteredTodos.slice(0, 5).length }})</h3>
+          <div v-if="filteredTodos.length === 0" class="empty-state">
+            <p>No tasks found. Try adjusting your filters.</p>
           </div>
-
-          <div class="stat-card stat-card-wide">
-            <div class="stat-content">
-              <p class="stat-label">Completion Rate</p>
-              <div class="progress-container">
-                <div class="progress-bar" :style="{ width: stats.completionRate + '%' }"></div>
+          <div v-else class="task-list">
+            <div 
+              v-for="todo in filteredTodos.slice(0, 5)" 
+              :key="todo.id"
+              class="task-item"
+            >
+              <div class="task-item-header">
+                <h4 :class="{ 'line-through': todo.status === 'done' }">{{ todo.title }}</h4>
+                <span class="task-status" :class="`status-${todo.status}`">
+                  {{ todo.status.replace('_', ' ') }}
+                </span>
               </div>
-              <p class="stat-value">{{ stats.completionRate }}%</p>
+              <p v-if="todo.description" class="task-description">{{ todo.description }}</p>
+              <div class="task-meta">
+                <span class="priority-badge" :class="`priority-${todo.priority}`">
+                  {{ todo.priority === 1 ? 'Low' : todo.priority === 2 ? 'Medium' : 'High' }}
+                </span>
+                <span v-if="todo.due_date" class="due-date">
+                  Due: {{ new Date(todo.due_date).toLocaleDateString() }}
+                </span>
+              </div>
             </div>
           </div>
         </div>
+      </div>
 
-        <!-- View Toggle -->
-        <div class="view-toggle">
-          <button 
-            @click="currentView = 'overview'"
-            :class="{ 'active': currentView === 'overview' }"
-            class="view-btn"
-          >
-            Overview
-          </button>
-          <button 
-            @click="currentView = 'charts'"
-            :class="{ 'active': currentView === 'charts' }"
-            class="view-btn"
-          >
-            Charts
-          </button>
-          <button 
-            @click="currentView = 'table'"
-            :class="{ 'active': currentView === 'table' }"
-            class="view-btn"
-          >
-            Table
-          </button>
+      <!-- Charts View -->
+      <div v-if="currentView === 'charts'" class="view-content">
+        <div class="charts-grid-full">
+          <div class="chart-card-large">
+            <StatusBarChart :todos="filteredTodos" :isDarkMode="isDarkMode" />
+          </div>
+          <div class="chart-card-large">
+            <PriorityPieChart :todos="filteredTodos" :isDarkMode="isDarkMode" />
+          </div>
         </div>
+      </div>
 
-        <!-- Filters -->
-        <TaskFilters 
-          :tags="tags" 
+      <!-- Table View -->
+      <div v-if="currentView === 'table'" class="view-content">
+        <TaskTable 
+          :todos="filteredTodos"
+          :tags="tags"
           :isDarkMode="isDarkMode"
-          @update:filters="updateFilters"
-          @update:search="updateSearch"
+          @toggle-status="toggleStatus"
+          @edit="startEdit"
+          @delete="deleteTodo"
         />
-
-        <!-- Overview View -->
-        <div v-if="currentView === 'overview'" class="view-content">
-          <div class="charts-grid">
-            <div class="chart-card">
-              <StatusBarChart :todos="filteredTodos" :isDarkMode="isDarkMode" />
-            </div>
-            <div class="chart-card">
-              <PriorityPieChart :todos="filteredTodos" :isDarkMode="isDarkMode" />
-            </div>
-          </div>
-
-          <div class="recent-tasks">
-            <h3 class="section-title">Recent Tasks ({{ filteredTodos.slice(0, 5).length }})</h3>
-            <div v-if="filteredTodos.length === 0" class="empty-state">
-              <p>No tasks found. Try adjusting your filters.</p>
-            </div>
-            <div v-else class="task-list">
-              <div 
-                v-for="todo in filteredTodos.slice(0, 5)" 
-                :key="todo.id"
-                class="task-item"
-              >
-                <div class="task-item-header">
-                  <h4 :class="{ 'line-through': todo.status === 'done' }">{{ todo.title }}</h4>
-                  <span class="task-status" :class="`status-${todo.status}`">
-                    {{ todo.status.replace('_', ' ') }}
-                  </span>
-                </div>
-                <p v-if="todo.description" class="task-description">{{ todo.description }}</p>
-                <div class="task-meta">
-                  <span class="priority-badge" :class="`priority-${todo.priority}`">
-                    {{ todo.priority === 1 ? 'Low' : todo.priority === 2 ? 'Medium' : 'High' }}
-                  </span>
-                  <span v-if="todo.due_date" class="due-date">
-                    Due: {{ new Date(todo.due_date).toLocaleDateString() }}
-                  </span>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Charts View -->
-        <div v-if="currentView === 'charts'" class="view-content">
-          <div class="charts-grid-full">
-            <div class="chart-card-large">
-              <StatusBarChart :todos="filteredTodos" :isDarkMode="isDarkMode" />
-            </div>
-            <div class="chart-card-large">
-              <PriorityPieChart :todos="filteredTodos" :isDarkMode="isDarkMode" />
-            </div>
-          </div>
-        </div>
-
-        <!-- Table View -->
-        <div v-if="currentView === 'table'" class="view-content">
-          <TaskTable 
-            :todos="filteredTodos"
-            :tags="tags"
-            :isDarkMode="isDarkMode"
-            @toggle-status="toggleStatus"
-            @edit="startEdit"
-            @delete="deleteTodo"
-          />
-        </div>
-      </template>
+      </div>
     </div>
 
     <!-- Edit Modal -->
@@ -438,6 +447,7 @@ onMounted(async () => {
 </template>
 
 <style scoped>
+/* Reusing exact same styles from Dashboard.vue */
 .dashboard-container {
   min-height: 100vh;
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
@@ -517,61 +527,10 @@ onMounted(async () => {
   height: 20px;
 }
 
-.logout-btn {
-  padding: 10px 20px;
-  background: #ef4444;
-  color: white;
-  border: none;
-  border-radius: 8px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.2s;
-}
-
-.logout-btn:hover {
-  background: #dc2626;
-}
-
 .dashboard-content {
   max-width: 1400px;
   margin: 0 auto;
   padding: 24px;
-}
-
-.error-banner {
-  background: #fee2e2;
-  color: #991b1b;
-  padding: 16px;
-  border-radius: 12px;
-  margin-bottom: 20px;
-  border-left: 4px solid #ef4444;
-}
-
-.dark .error-banner {
-  background: #7f1d1d;
-  color: #fca5a5;
-}
-
-.loading-state {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 60px 20px;
-  color: white;
-}
-
-.spinner {
-  width: 48px;
-  height: 48px;
-  border: 4px solid rgba(255, 255, 255, 0.3);
-  border-top-color: white;
-  border-radius: 50%;
-  animation: spin 1s linear infinite;
-}
-
-@keyframes spin {
-  to { transform: rotate(360deg); }
 }
 
 .stats-grid {
